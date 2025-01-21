@@ -6,6 +6,8 @@ contract TimeLock {
 
     event LockSet(uint256 indexed tournamentId, uint256 endTime);
 
+    constructor() {}
+
     /// @notice Sets a lock for a specific tournament until a specified end time
     function setLock(uint256 tournamentId, uint256 endTime) external {
         require(endTime > block.timestamp, "End time must be in the future");
