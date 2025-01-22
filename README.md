@@ -106,7 +106,10 @@ TournamentManagerProject
    forge test
    ```
 
-
+## Deployed Addresses on Blast Sepolia
+- Player Registery deployed at: 0xD4AF7513924eF92F12fE089De9ba56146244D879
+- TimeLock deployed at: 0xe09f9659C900b564a51eB6abc3679e300b467ad3
+- Tournamaent Manager deployed at: 0xcf6466B4De8067BfC5090c86e93F9f39a9d40a24
 
 
 
