@@ -13,7 +13,7 @@ contract PlayerRegistry is ERC721, Ownable {
     event PlayerRegistered(address indexed player, uint256 playerId);
     event BadgeIssued(address indexed player, uint256 tokenId);
 
-    constructor(address _admin) ERC721("TournamentBadge", "TB") Ownable(_admin)  {}
+    constructor(address _admin) ERC721("TournamentBadge", "TB") Ownable(_admin) {}
 
     /// @dev Players can register themselves
     function registerPlayer() external {

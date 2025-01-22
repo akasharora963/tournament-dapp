@@ -39,14 +39,11 @@ contract TournamentManagerTest is Test {
         uint256 duration = 2 hours;
 
         tournamentManager.createTournament(
-            entryFee,
-            maxPlayers,
-            startTime,
-            duration,
-            TournamentManager.GAME_TYPE.ARCADE
+            entryFee, maxPlayers, startTime, duration, TournamentManager.GAME_TYPE.ARCADE
         );
 
-        (uint256 id, uint256 fee, uint256 max, , , , , uint256 prizePool, TournamentManager.TOURNAMENT_STATUS status) = tournamentManager.tournaments(0);
+        (uint256 id, uint256 fee, uint256 max,,,,, uint256 prizePool, TournamentManager.TOURNAMENT_STATUS status) =
+            tournamentManager.tournaments(0);
         assertEq(id, 0);
         assertEq(fee, entryFee);
         assertEq(max, maxPlayers);
@@ -65,11 +62,7 @@ contract TournamentManagerTest is Test {
         uint256 duration = 2 hours;
 
         tournamentManager.createTournament(
-            entryFee,
-            maxPlayers,
-            startTime,
-            duration,
-            TournamentManager.GAME_TYPE.ARCADE
+            entryFee, maxPlayers, startTime, duration, TournamentManager.GAME_TYPE.ARCADE
         );
 
         vm.stopPrank();
@@ -79,11 +72,10 @@ contract TournamentManagerTest is Test {
 
         tournamentManager.joinTournament{value: entryFee}(0);
 
-        (, , , , , , uint256 totalPlayers, uint256 prizePool, ) = tournamentManager.tournaments(0);
+        (,,,,,, uint256 totalPlayers, uint256 prizePool,) = tournamentManager.tournaments(0);
         assertEq(totalPlayers, 1);
         assertEq(prizePool, entryFee);
 
         vm.stopPrank();
     }
-
 }

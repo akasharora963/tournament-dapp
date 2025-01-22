@@ -9,12 +9,7 @@ library Sort {
      * @param left The starting index for sorting.
      * @param right The ending index for sorting.
      */
-    function sort(
-        address[] memory players,
-        uint256[] memory scores,
-        int256 left,
-        int256 right
-    ) internal pure {
+    function sort(address[] memory players, uint256[] memory scores, int256 left, int256 right) internal pure {
         if (left >= right) return;
 
         uint256 pivot = scores[uint256(left + (right - left) / 2)];

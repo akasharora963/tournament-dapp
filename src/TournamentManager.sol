@@ -51,30 +51,16 @@ contract TournamentManager is ReentrancyGuard, Ownable {
     mapping(uint256 => address[]) public tournamentPlayers;
     mapping(uint256 => mapping(address => PLAYER)) public playerData;
 
-    event TournamentCreated(
-        uint256 id,
-        uint256 entryFee,
-        uint256 maxPlayers,
-        uint256 startTime,
-        uint256 endTime
-    );
+    event TournamentCreated(uint256 id, uint256 entryFee, uint256 maxPlayers, uint256 startTime, uint256 endTime);
     event PlayerJoined(uint256 tournamentId, address player);
-    event RewardsDistributed(
-        uint256 tournamentId,
-        uint256 totalPrize,
-        address[] winners
-    );
+    event RewardsDistributed(uint256 tournamentId, uint256 totalPrize, address[] winners);
 
-    constructor(
-        address _admin,
-        address _playerRegistry,
-        address _timeLock
-    ) Ownable(_admin) {
+    constructor(address _admin, address _playerRegistry, address _timeLock) Ownable(_admin) {
         playerRegistry = PlayerRegistry(_playerRegistry);
         timeLock = TimeLock(_timeLock);
     }
 
-    receive() external payable{}
+    receive() external payable {}
 
     function createTournament(
         uint256 _entryFee,
@@ -85,10 +71,7 @@ contract TournamentManager is ReentrancyGuard, Ownable {
     ) external onlyOwner {
         require(_startTime > block.timestamp, "Invalid start time");
         require(_entryFee > 0, "Entry fee must be greater than zero");
-        require(
-            _maxPlayers > 0 && _maxPlayers <= MAX_ALLOWED_PLAYERS,
-            "Invalid max players"
-        );
+        require(_maxPlayers > 0 && _maxPlayers <= MAX_ALLOWED_PLAYERS, "Invalid max players");
 
         uint256 _endTime = _startTime + _duration;
 
@@ -104,36 +87,21 @@ contract TournamentManager is ReentrancyGuard, Ownable {
         // Set time lock for score submissions
         timeLock.setLock(tournamentId, _endTime);
 
-        emit TournamentCreated(
-            tournamentId,
-            _entryFee,
-            _maxPlayers,
-            _startTime,
-            _endTime
-        );
+        emit TournamentCreated(tournamentId, _entryFee, _maxPlayers, _startTime, _endTime);
         tournamentId++;
     }
 
     function startGame(uint256 _id) external onlyOwner {
         Tournament storage tournament = tournaments[_id];
-        require(
-            tournament.totalPlayers == tournament.maxPlayers,
-            "Lobby not full"
-        );
+        require(tournament.totalPlayers == tournament.maxPlayers, "Lobby not full");
 
         tournament.status = TOURNAMENT_STATUS.ACTIVE;
     }
 
     function joinTournament(uint256 _id) external payable {
         Tournament storage tournament = tournaments[_id];
-        require(
-            block.timestamp < tournament.startTime,
-            "Tournament already started"
-        );
-        require(
-            tournament.totalPlayers < tournament.maxPlayers,
-            "Tournament full"
-        );
+        require(block.timestamp < tournament.startTime, "Tournament already started");
+        require(tournament.totalPlayers < tournament.maxPlayers, "Tournament full");
         require(!hasJoined[_id][msg.sender], "Already joined");
 
         uint256 fee = tournament.entryFee;
@@ -154,20 +122,11 @@ contract TournamentManager is ReentrancyGuard, Ownable {
         emit PlayerJoined(_id, msg.sender);
     }
 
-    function submitScores(
-        uint256 _id,
-        uint256[] calldata _scores
-    ) external onlyOwner {
+    function submitScores(uint256 _id, uint256[] calldata _scores) external onlyOwner {
         Tournament storage tournament = tournaments[_id];
-        require(tournament.status == TOURNAMENT_STATUS.ACTIVE,"Game not started");
-        require(
-            block.timestamp <= timeLock.lockEndTimes(_id),
-            "Submission window closed"
-        );
-        require(
-            _scores.length == tournamentPlayers[_id].length,
-            "Scores array length mismatch"
-        );
+        require(tournament.status == TOURNAMENT_STATUS.ACTIVE, "Game not started");
+        require(block.timestamp <= timeLock.lockEndTimes(_id), "Submission window closed");
+        require(_scores.length == tournamentPlayers[_id].length, "Scores array length mismatch");
 
         uint256 _players = tournamentPlayers[_id].length;
 
@@ -178,14 +137,11 @@ contract TournamentManager is ReentrancyGuard, Ownable {
         }
     }
 
-    function finalizeTournament(
-        uint256 _id
-    ) external onlyOwner returns (TOURNAMENT_STATUS _status) {
+    function finalizeTournament(uint256 _id) external onlyOwner returns (TOURNAMENT_STATUS _status) {
         Tournament storage tournament = tournaments[_id];
         require(block.timestamp > tournament.endTime, "Tournament not ended");
         require(
-            tournament.status == TOURNAMENT_STATUS.CREATED ||
-                tournament.status == TOURNAMENT_STATUS.ACTIVE,
+            tournament.status == TOURNAMENT_STATUS.CREATED || tournament.status == TOURNAMENT_STATUS.ACTIVE,
             "Tournament already finalized"
         );
 
@@ -199,7 +155,7 @@ contract TournamentManager is ReentrancyGuard, Ownable {
             for (uint256 i = 0; i < _players; i++) {
                 address _player = tournamentPlayers[_id][i];
                 uint256 _contribution = playerData[_id][_player]._contribution;
-                (bool sent, ) = _player.call{value: _contribution}("");
+                (bool sent,) = _player.call{value: _contribution}("");
                 require(sent, "Failed to refund");
             }
 
@@ -217,30 +173,21 @@ contract TournamentManager is ReentrancyGuard, Ownable {
     function distributeRewards(uint256 _id) internal {
         Tournament storage tournament = tournaments[_id];
         uint256 totalPrize = tournament.prizePool;
-        require(
-            address(this).balance >= totalPrize,
-            "Insufficient contract balance for rewards"
-        );
+        require(address(this).balance >= totalPrize, "Insufficient contract balance for rewards");
 
         address[] memory winners = getTopPlayers(_id);
 
         // Reward distribution logic using call (50% - 1st, 30% - 2nd, 20% - 3rd)
         if (winners.length >= 1) {
-            (bool success, ) = winners[0].call{value: (totalPrize * 50) / 100}(
-                ""
-            );
+            (bool success,) = winners[0].call{value: (totalPrize * 50) / 100}("");
             require(success, "Transfer to 1st winner failed");
         }
         if (winners.length >= 2) {
-            (bool success, ) = winners[1].call{value: (totalPrize * 30) / 100}(
-                ""
-            );
+            (bool success,) = winners[1].call{value: (totalPrize * 30) / 100}("");
             require(success, "Transfer to 2nd winner failed");
         }
         if (winners.length >= 3) {
-            (bool success, ) = winners[2].call{value: (totalPrize * 20) / 100}(
-                ""
-            );
+            (bool success,) = winners[2].call{value: (totalPrize * 20) / 100}("");
             require(success, "Transfer to 3rd winner failed");
         }
 

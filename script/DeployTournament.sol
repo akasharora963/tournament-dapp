@@ -19,15 +19,11 @@ contract DeployTournament is Script {
         console.log("Player Registery deployed at:", address(_pr));
 
         // Deploy TimeLock
-
         TimeLock _tl = new TimeLock();
         console.log("TimeLock deployed at:", address(_tl));
 
-        TournamentManager _tm = new TournamentManager(
-            _admin,
-            address(_pr),
-            address(_tl)
-        );
+        // Deploy tournament
+        TournamentManager _tm = new TournamentManager(_admin, address(_pr), address(_tl));
 
         console.log("Tournamaent Manager deployed at:", address(_tm));
 
