@@ -158,6 +158,8 @@ contract TournamentManager is ReentrancyGuard, Ownable {
         uint256 _id,
         uint256[] calldata _scores
     ) external onlyOwner {
+        Tournament storage tournament = tournaments[_id];
+        require(tournament.status == TOURNAMENT_STATUS.ACTIVE,"Game not started");
         require(
             block.timestamp <= timeLock.lockEndTimes(_id),
             "Submission window closed"
